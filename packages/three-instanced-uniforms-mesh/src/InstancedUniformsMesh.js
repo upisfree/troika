@@ -2,11 +2,15 @@ import { InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial } from 'thre
 import { getShadersForMaterial } from 'troika-three-utils'
 import { createInstancedUniformsDerivedMaterial } from './InstancedUniformsDerivedMaterial.js'
 
+const defaultUniformOptions = {
+  interpolate: true // should attribute be interpolated. If false, value will not be interpolated in fragment shader by marking it as "flat"
+}
+
 export class InstancedUniformsMesh extends InstancedMesh {
   constructor (geometry, material, count) {
     super(geometry, material, count)
     this._maxCount = count;
-    this._instancedUniforms = new Map() // Map<uniformName, { isFlat: boolean }>
+    this._instancedUniforms = new Map() // Map<uniformName, { interpolate: boolean }>
   }
 
   /*
@@ -84,9 +88,9 @@ export class InstancedUniformsMesh extends InstancedMesh {
    * @param {string} name - the name of the shader uniform
    * @param {number} index - the index of the instance to set the value for
    * @param {number|Vector2|Vector3|Vector4|Color|Array|Matrix3|Matrix4|Quaternion} value - the uniform value for this instance
-   * @param {boolean} isFlat - should attribute be marked as flat. If true, value will not be interpolated in fragment shader
+   * @param {Object} uniformOptions - see defaultUniformOptions for details
    */
-  setUniformAt (name, index, value, isFlat = false) {
+  setUniformAt (name, index, value, uniformOptions) {
     const attrs = this.geometry.attributes
     const attrName = `troika_attr_${name}`
     let attr = attrs[attrName]
@@ -100,7 +104,19 @@ export class InstancedUniformsMesh extends InstancedMesh {
           setAttributeValue(attr, i, defaultValue)
         }
       }
-      this._instancedUniforms.set(name, { isFlat })
+
+      if (!uniformOptions) {
+        // If no options, copy from default object
+        uniformOptions = Object.assign({}, defaultUniformOptions)
+      } else {
+        // If options are here use them and copy missing from default if needed
+        uniformOptions = {
+          ...defaultUniformOptions,
+          ...uniformOptions
+        }
+      }
+
+      this._instancedUniforms.set(name, uniformOptions)
     }
     setAttributeValue(attr, index, value)
     attr.needsUpdate = true

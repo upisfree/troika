@@ -1,6 +1,6 @@
 import { createDerivedMaterial, getShaderUniformTypes, voidMainRegExp } from 'troika-three-utils'
 
-export function createInstancedUniformsDerivedMaterial (baseMaterial) {
+export function createInstancedUniformsDerivedMaterial(baseMaterial) {
   let _uniforms = new Map()
   let _uniformNamesKey = ''
 
@@ -34,7 +34,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
           if (fragType) {
             fragmentShader = fragmentShader.replace(declarationFinder, '')
             fragmentShader = fragmentShader.replace(referenceFinder, varyingName)
-            let varyingDecl = `${ (options.isFlat) ? 'flat' : '' } varying ${fragType} ${varyingName};`
+            let varyingDecl = `${ (options.interpolate === false) ? 'flat' : '' } varying ${fragType} ${varyingName};`
             vertexDeclarations.push(varyingDecl)
             fragmentDeclarations.push(varyingDecl)
             vertexAssignments.push(`${varyingName} = ${attrName};`)
@@ -57,7 +57,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
   /**
    * Update the set of uniforms that will be enabled for per-instance values. This
    * can be changed dynamically after instantiation.
-   * @param {Map<string, { isFlat: boolean }>} uniforms
+   * @param {Map<string, { interpolate: boolean }>} uniforms
    */
   derived.setUniforms = function(uniforms) {
     _uniforms = uniforms || new Map()
